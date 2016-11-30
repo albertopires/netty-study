@@ -26,8 +26,7 @@ public class DiscardServer {
 					.channel(NioServerSocketChannel.class)
 					.childHandler(new ChannelInitializer<SocketChannel>() {
 						@Override
-						public void initChannel(SocketChannel ch)
-								throws Exception {
+						public void initChannel(SocketChannel ch) throws Exception {
 							ch.pipeline().addLast(new DiscardServerHandler());
 						}
 					}).option(ChannelOption.SO_BACKLOG, 128)
