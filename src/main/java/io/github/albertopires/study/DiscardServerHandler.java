@@ -11,23 +11,33 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
 
 	@Override
 	public void channelRead(ChannelHandlerContext ctx, Object msg) {
-		ByteBuf in = (ByteBuf) msg;
+		String outcome = "Releasing msg";
+		if (msg instanceof ByteBuf) {
+			ByteBuf in = (ByteBuf) msg;
 
-		try {
-			while (in.isReadable()) {
-				System.out.print((char) in.readByte());
-				System.out.flush();
+			try {
+				while (in.isReadable()) {
+					System.out.print((char) in.readByte());
+					System.out.flush();
+				}
+			} finally {
+				// ((ByteBuf) msg).release();
+				sendMessage(ctx, msg, outcome);
 			}
-		} finally {
-			// ((ByteBuf) msg).release();
-			System.err.println("Releasing msg");
-			Date d = new Date();
-			String str = d.toString();
-			ByteBuf response = ctx.alloc().buffer(str.length());
-			response.writeBytes(str.getBytes());
-			ctx.writeAndFlush(response);
-			ReferenceCountUtil.release(msg);
+		} else {
+			sendMessage(ctx, msg, outcome);
 		}
+	}
+
+	private void sendMessage(ChannelHandlerContext ctx, Object msg,
+			String outcome) {
+		System.err.println(outcome);
+		Date d = new Date();
+		String str = d.toString();
+		ByteBuf response = ctx.alloc().buffer(str.length());
+		response.writeBytes(str.getBytes());
+		ctx.writeAndFlush(response);
+		ReferenceCountUtil.release(msg);
 	}
 
 	@Override
@@ -36,5 +46,5 @@ public class DiscardServerHandler extends ChannelInboundHandlerAdapter {
 		cause.printStackTrace();
 		ctx.close();
 	}
-	
+
 }
